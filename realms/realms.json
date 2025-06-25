@@ -1,0 +1,25 @@
+{
+    "id": "master",
+    "realm": "master",
+    "enabled": true,
+    "displayName": "Keycloak Master Realm",
+    "registrationAllowed": false,
+    "loginWithEmailAllowed": true,
+    "duplicateEmailsAllowed": false,
+    "resetPasswordAllowed": true,
+    "editUsernameAllowed": false,
+    "sslRequired": "external",
+    "browserFlow": "browser",
+    "directGrantFlow": "direct grant",
+    "clients": [
+      {
+        "clientId": "admin-cli",
+        "enabled": true,
+        "publicClient": true,
+        "directAccessGrantsEnabled": true,
+        "protocol": "openid-connect",
+        "rootUrl": "http://localhost:8080"
+      }
+    ]
+  }
+  
