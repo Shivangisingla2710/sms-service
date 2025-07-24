@@ -29,7 +29,14 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
         String phoneNumber = user.getFirstAttribute("phoneNumber");
         String isAdminCreated = user.getFirstAttribute("isAdminCreated");
 
-        logger.info("IsAdminCreated: " + isAdminCreated);
+        if (isAdminCreated == null) {
+            // Attribute doesn't exist yet, create and set to Yes
+            user.setSingleAttribute("isAdminCreated", "Yes");
+            isAdminCreated = user.getFirstAttribute("isAdminCreated");
+            logger.info("Attribute isAdminCreated was missing. Set to " + isAdminCreated);
+        } else {
+            logger.info("isAdminCreated: " + isAdminCreated);
+        }
 
         Boolean isUpdatePwdRequired = context.getAuthenticationSession().getRequiredActions().contains(UserModel.RequiredAction.UPDATE_PASSWORD.name());
 
