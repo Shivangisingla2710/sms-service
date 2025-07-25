@@ -20,7 +20,7 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
 
     private static final Logger logger = Logger.getLogger(TwoFactorSmsAuthenticator.class);
 
-    private static final String API_KEY = "<YOUR-API-KEY>";
+    private static final String API_KEY = "a7091539-50e7-11f0-a562-0200cd936042";
     private static final String OTP_SESSION_ATTR = "2factor_session";
 
     @Override
@@ -40,10 +40,10 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
 
         Boolean isUpdatePwdRequired = context.getAuthenticationSession().getRequiredActions().contains(UserModel.RequiredAction.UPDATE_PASSWORD.name());
 
+        // String otpVerified = context.getAuthenticationSession().getAuthNote("OTP_VERIFIED");
+
         if("Yes".equals(isAdminCreated) || isUpdatePwdRequired){
             logger.info("UPDATE PASSWORD REQUIRED IN USER ACTIONS.");
-            user.setSingleAttribute("isAdminCreated", "No");
-            logger.info("isAdminCreated: " + user.getFirstAttribute("isAdminCreated"));
             
             if (phoneNumber == null || phoneNumber.isEmpty()) {
                 Response challenge = context.form()
@@ -100,6 +100,8 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
 
             if (body.contains("Success")) {
                 context.success();
+                context.getUser().setSingleAttribute("isAdminCreated", "No");
+                logger.info("isAdminCreated: " + context.getUser().getFirstAttribute("isAdminCreated"));
             } else {
                 Response challenge = context.form()
                     .setError("Invalid OTP.")
