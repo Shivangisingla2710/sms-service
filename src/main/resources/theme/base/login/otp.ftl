@@ -14,6 +14,13 @@
         <input class="btn btn-primary" type="submit" value="Verify OTP"/>
       </div>
     </form>
+
+    <form id="kc-otp-resend-form" class="form" action="${url.loginAction}" method="post" style="margin-top: 10px;">
+      <input type="hidden" name="resendOtp" value="true"/>
+      <div class="form-group">
+        <input class="btn btn-secondary" type="submit" value="Resend OTP"/>
+      </div>
+    </form>
   </#if>
 </@layout.registrationLayout>
 
