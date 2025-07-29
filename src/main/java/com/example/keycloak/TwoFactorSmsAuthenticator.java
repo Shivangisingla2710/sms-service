@@ -1,7 +1,5 @@
 package com.example.keycloak;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.models.UserModel;
@@ -23,9 +21,9 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
 
     public static final String apiKey = "a7091539-50e7-11f0-a562-0200cd936042";
     public static final String baseUrl = "https://2factor.in/API/V1/";
-    public static final long otpValidityTime = 1*60*1000;
-    public static final long retryCooldownPeriod = 2*60*1000;
-    public static final int maxRetries = 5;
+    public static final long otpValidityTime = 10*60*1000; // 10 minutes
+    public static final long retryCooldownPeriod = 60*60*1000; // 1 hour
+    public static final int maxRetries = 3; // MAX 3 retries allowed
 
     public static final String OTP_SESSION_ATTR = "2factor_session";
     public static final String OTP_VERIFIED_ATTR = "OTP_VERIFIED";
@@ -55,11 +53,14 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
 
         if (shouldChallengeOtp) {
             logger.info("UPDATE PASSWORD REQUIRED IN USER ACTIONS.");
-            
+
             long now = System.currentTimeMillis();
             long blockedUntil = blockedUntilStr != null ? Long.parseLong(blockedUntilStr) : 0;
+            long otpSentAt = timestampStr != null ? Long.parseLong(timestampStr) : 0;
+            int retries = otpRetryCountStr != null ? Integer.parseInt(otpRetryCountStr) : 0;
+
             //Block OTP until cooldown period is reached
-            if (blockedUntilStr != null && now < blockedUntil) {
+            if (now < blockedUntil && retries >= maxRetries) {
                 long waitMinutes = (blockedUntil - now) / 60000;
                 Response challenge = context.form()
                     .setError("Too many attempts. Try again in " + waitMinutes + " minutes.")
@@ -67,13 +68,18 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
                 context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR, challenge);
                 return;
             }
-
-            long otpSentAt = timestampStr != null ? Long.parseLong(timestampStr) : 0;
-            int retries = otpRetryCountStr != null ? Integer.parseInt(otpRetryCountStr) : 0;
-
-            //set retry count and blocked time = 0 after cooldown period is completed
-            if((blockedUntilStr != null && now >= blockedUntil) || ((now - otpSentAt) >= retryCooldownPeriod)){
-                user.setSingleAttribute("blockedUntil", "0");
+            
+            logger.info("bockedUntilStr " + blockedUntilStr);
+            if(blockedUntilStr != null){
+                logger.info("blocked until is not null");
+            }else{
+                logger.info("blocked until is null, that means user hasnt exhausted all attempts, thus setting its value to maximum");
+                blockedUntil = Long.MAX_VALUE;
+            }
+            logger.info("now: " + now + " blockedUntil: " + blockedUntil);
+            //set retry count and blocked time = 0 after cooldown period is completed or admin has reset the retry count to 0
+            if((now >= blockedUntil) || (retries == 0)){
+                user.removeAttribute("blockedUntil");
                 user.setSingleAttribute("otpRetryCount", "0");
             }
 
@@ -104,7 +110,7 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
         int retries = otpRetryCountStr != null ? Integer.parseInt(otpRetryCountStr) : 0;
 
         if ((now - otpSentAt) > otpValidityTime) {
-            retries++;
+            ++retries;
             context.getUser().setSingleAttribute("otpRetryCount", String.valueOf(retries));
             Response challenge = context.form()
                 .setError("OTP expired. Please resend OTP.")
@@ -140,10 +146,10 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
                 context.getUser().setSingleAttribute("isAdminCreated", "No");
                 //set retry count and blocked time = 0 in case of successful otp validation
                 context.getUser().setSingleAttribute("otpRetryCount", "0");
-                context.getUser().setSingleAttribute("blockedUntil", "0");
+                context.getUser().removeAttribute("blockedUntil");
                 logger.info("isAdminCreated set to No");
             } else {
-                retries++;
+                ++retries;
                 context.getUser().setSingleAttribute("otpRetryCount", String.valueOf(retries));
 
                 Response challenge = context.form()
