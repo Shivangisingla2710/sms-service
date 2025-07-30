@@ -19,7 +19,7 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
 
     private static final Logger logger = Logger.getLogger(TwoFactorSmsAuthenticator.class);
 
-    public static final String apiKey = "a7091539-50e7-11f0-a562-0200cd936042";
+    public static final String apiKey = "<YOUR-API-KEY>";
     public static final String baseUrl = "https://2factor.in/API/V1/";
     public static final long otpValidityTime = 10*60*1000; // 10 minutes
     public static final long retryCooldownPeriod = 60*60*1000; // 1 hour
