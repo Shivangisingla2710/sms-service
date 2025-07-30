@@ -69,14 +69,13 @@ public class TwoFactorSmsAuthenticator implements Authenticator {
                 return;
             }
             
-            logger.info("bockedUntilStr " + blockedUntilStr);
             if(blockedUntilStr != null){
                 logger.info("blocked until is not null");
             }else{
                 logger.info("blocked until is null, that means user hasnt exhausted all attempts, thus setting its value to maximum");
                 blockedUntil = Long.MAX_VALUE;
             }
-            logger.info("now: " + now + " blockedUntil: " + blockedUntil);
+            
             //set retry count and blocked time = 0 after cooldown period is completed or admin has reset the retry count to 0
             if((now >= blockedUntil) || (retries == 0)){
                 user.removeAttribute("blockedUntil");
