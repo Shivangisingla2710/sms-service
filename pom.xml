@@ -6,6 +6,12 @@
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-core</artifactId>
+        <version>24.0.3</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-server-spi</artifactId>
       <version>24.0.3</version> <!-- match your Keycloak version -->
